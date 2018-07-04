@@ -2,7 +2,7 @@
 #
 # Import Unix branches into a single repo
 #
-# Copyright 2013-2014 Diomidis Spinellis
+# Copyright 2013-2016 Diomidis Spinellis
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 REPO=import
 
 # Commit label used for verification of parents
-FIRST_COMMIT='Research PDP7'
+FIRST_COMMIT='Empty repository at start of Unix Epoch'
 
 # Location of archive mirror
 ARCHIVE=../archive
@@ -38,6 +38,7 @@ usage()
 Usage: $0 [--debug] [--no-import] [--no-verify] [--verbose]
 
 -d|--debug	Import only a small subset, and generate debugging information
+-g|--git-fast-import-dump Dump the import to git-fast-import to gfi.in
 -I|--no-import	Skip importing phase
 -V|--no-verify	Skip verification phase
 -v|--verbose	Pass verbose to the import-dir command
@@ -62,16 +63,17 @@ add_boilerplate()
 {
   cp ../old-code-license LICENSE
   cp ../Caldera-license.pdf .
+  cp ../ALU-USA-statement.pdf .
   cp ../README-SHA.md README.md
-  git add LICENSE README.md Caldera-license.pdf
-  git commit -a -m "Add licenses and README"
+  git add LICENSE README.md Caldera-license.pdf ALU-USA-statement.pdf
+  git commit -a -m "Add licenses and README" >/dev/null
 }
 
 
 # Git fast import
 gfi()
 {
-  if [ -n "$DEBUG" ]
+  if [ -n "$GFI_DUMP" ]
   then
     tee ../out/gfi.in
   else
@@ -83,6 +85,12 @@ gfi()
     exit 77
   fi
   set +x
+}
+
+# Succeed if the specified file exists and is newer than this script
+is_up_to_date()
+{
+  test -r "$1" -a "$1" -nt ../import.sh
 }
 
 # Import the data sources in archive into a Git archive
@@ -101,28 +109,40 @@ import()
   mkdir $REPO
   cd $REPO
   git init
+
   add_boilerplate
-  git tag Epoch
+  git tag Licenses
+
+  # Create a blank repository to avoid the first release having as its
+  # only parent one that was committed in the modern era
+  git checkout --orphan Epoch
+  TZ=UTC GIT_COMMITTER_DATE='1970-01-01T00:00:00' \
+    GIT_AUTHOR_DATE='1970-01-01T00:00:00' git commit --allow-empty -m "$FIRST_COMMIT"
 
   # Release branch
   git branch Research-Release
 
   # PDP-7: Assembly language kernel and utilities
-  perl ../import-dir.pl $VERBOSE -m Epoch -c ../author-path/Research-V1 -n ../bell.au \
+  perl ../import-dir.pl $VERBOSE -m Epoch,Licenses -c ../author-path/Research-V1 -n ../bell.au \
     $DEBUG -i ../ignore/Research-PDP7 \
     $ARCHIVE/pdp7-unix/scans Research PDP7 -0500 | gfi
 
   # V1: Assembly language kernel
   perl ../import-dir.pl $VERBOSE -m Research-PDP7 -c ../author-path/Research-V1 -n ../bell.au \
-    $DEBUG -r Research-PDP7 \
+    $DEBUG \
     $ARCHIVE/v1/sys Research V1 -0500 | gfi
 
-  # V3: C kernel
-  perl ../import-dir.pl $VERBOSE -m Research-V1 -c ../author-path/Research-V3 \
-    -n ../bell.au -r Research-V1 $DEBUG \
+  # V2: Fragments of a few commands mostly in assembly, C compiler and library
+  perl ../import-dir.pl $VERBOSE -m Research-V1 -c ../author-path/Research-V2 \
+    -n ../bell.au $DEBUG \
+    -u ../unmatched/Research-V2 $ARCHIVE/v2 Research V2 -0500 | gfi
+
+  # V3: Part of the C compiler, manual pages
+  perl ../import-dir.pl $VERBOSE -m Research-V2 -c ../author-path/Research-V3 \
+    -n ../bell.au -r Research-V2 $DEBUG \
     -u ../unmatched/Research-V3 $ARCHIVE/v3 Research V3 -0500 | gfi
 
-  # V4: Manual pages
+  # V4: C kernel, manual pages
   perl ../import-dir.pl $VERBOSE -m Research-V3 -c ../author-path/Research-V4 \
     -n ../bell.au -r Research-V3 $DEBUG \
     -u ../unmatched/Research-V4 $ARCHIVE/v4 Research V4 -0500 | gfi
@@ -214,14 +234,21 @@ EOF
 
     # Exclude administrative files (SCCS and .MAP), and
     # files with spaces in their names
-    test -r ../ignore/BSD-${version}-admin ||
-      find $dir -type f |
-      egrep '(/\.MAP)|(/SCCS/)| ' |
-      sed "s|$dir/||" |
-      sort >../ignore/BSD-${version}-admin
+    is_up_to_date ../ignore/BSD-${version}-admin ||
+      (
+	if [ ${version} = 4_1c_2 ] ; then
+	  echo LABEL
+	  echo TAPE/FILE.1
+	  echo TAPE/FILE.2
+	fi
+	find $dir -type f |
+	egrep '(/\.MAP)|(/SCCS/)| ' |
+	sed "s|$dir/||" |
+	sort
+      ) >../ignore/BSD-${version}-admin
 
     # Exclude additional installed files
-    test -r ../ignore/BSD-${version}-other || (
+    is_up_to_date ../ignore/BSD-${version}-other || (
       find $dir/bin -type f
       find $dir/etc -type f
       find $dir/usr/bin -type f
@@ -239,10 +266,10 @@ EOF
     # Tag the release at the SCCS branch
     git tag BSD-$version-Snapshot-Development $SCCS_AT_RELEASE
 
-    test -r ../ignore/"BSD-${version}-sccs" || (
+    is_up_to_date ../ignore/"BSD-${version}-sccs" || (
       # Files in the SCCS tree
       git ls-tree --full-tree --name-only -r $SCCS_AT_RELEASE |
-      egrep -v '^((\.ref)|(LICENSE)|(README\.md)|(Caldera-license\.pdf))'
+      egrep -v '^((\.ref)|(LICENSE)|(README\.md)|(ALU-USA-statement\.pdf)(Caldera-license\.pdf))'
 
       # Files with SCCS mark
       find $dir -type f |
@@ -284,7 +311,7 @@ EOF
     $ARCHIVE/386BSD-0.1 386BSD 0.1 -0800 | gfi
 
   # 386BSD 0.1 patchkit
-  perl ../import-dir.pl $VERBOSE -m 386BSD-0.1 -b 386BSD-0.1 \
+  perl ../import-dir.pl $VERBOSE -m 386BSD-0.1 -b 386BSD-0.1 $DEBUG \
     -G 'Diomidis Spinellis <dds@FreeBSD.org> 739659600 +0000' \
     $ARCHIVE/386BSD-0.1-patched/ 386BSD-0.1-patchkit \
     --progress=1000 | gfi
@@ -346,6 +373,7 @@ verify_same_text()
       if (!s/^Only in // || !s|: |/| || -T) {
         next if (/LICENSE/);
         next if (/Caldera-license\.pdf/);
+        next if (/ALU-USA-statement\.pdf/);
         next if (/README\.md/);
         $exit = 1;
         print "$_\n"
@@ -447,7 +475,7 @@ verify()
   done
 
   # Verify Research releases are the same
-  for i in 3 4 5 6
+  for i in 2 3 4 5 6
   do
     git checkout Research-V$i
     verify_same_text . $ARCHIVE/v$i /dev/null
@@ -514,9 +542,9 @@ verify()
 
   # Exact numbers
   compare_repo 386BSD-0.1-patchkit ../archive/386BSD-0.1-patched 0 0 296 726
-  compare_repo 386BSD-0.1-patchkit-Import ../archive/../archive/386BSD-0.1 0 0 116 692
-  compare_repo 386BSD-0.0-Snapshot-Development ../archive/../archive/386BSD-0.0/src 0 0 27 574
-  compare_repo 386BSD-0.1-Snapshot-Development ../archive/../archive/386BSD-0.1 0 0 117 692
+  compare_repo 386BSD-0.1-patchkit-Import ../archive/../archive/386BSD-0.1 0 0 117 692
+  compare_repo 386BSD-0.0-Snapshot-Development ../archive/../archive/386BSD-0.0/src 0 0 28 574
+  compare_repo 386BSD-0.1-Snapshot-Development ../archive/../archive/386BSD-0.1 0 0 118 692
 
   # Verify that we're not including ignored directory
   if [ -z "$DEBUG" ] ; then
@@ -532,7 +560,7 @@ verify()
 
   # Actually 33 1220 54
   # Missing files are GNU utilities
-  compare_repo FreeBSD-release/1.0 ../archive/FreeBSD-1.0/filesys/usr/src/ 40 1300 54 0
+  compare_repo FreeBSD-release/1.0 ../archive/FreeBSD-1.0/filesys/usr/src/ 40 1300 55 0
 
   git checkout FreeBSD-release/1.1
   for i in $(echo $MERGED_FREEBSD_1 | sed 's/,/ /')
@@ -542,11 +570,11 @@ verify()
 
   # Actually 43 272 126
   # Missing files are mainly from gnu/lib/libg++/g++-include
-  compare_repo FreeBSD-release/1.1 ../archive/FreeBSD-1.1/filesys/usr/src/ 45 300 126 0
+  compare_repo FreeBSD-release/1.1 ../archive/FreeBSD-1.1/filesys/usr/src/ 45 300 127 0
 
   # Actually 64 234 20
   # Missing files are mainly kernel configurations
-  compare_repo FreeBSD-release/1.1.5 ../archive/FreeBSD-1.1.5/usr/src/ 70 300 20 0
+  compare_repo FreeBSD-release/1.1.5 ../archive/FreeBSD-1.1.5/usr/src/ 70 300 21 0
 
   git checkout FreeBSD-release/2.0
   for i in $(echo $MERGED_FREEBSD_2 | sed 's/,/ /')
@@ -633,6 +661,12 @@ preconditions()
       exit 1
     fi
   done
+
+  # Check that ignored files are still there
+  if ! grep LABEL ignore/BSD-4_1c_2-admin >/dev/null ; then
+    echo "Missing ignored files in ignore/BSD-4_1c_2-admin" 1>&2
+    exit 1
+  fi
 }
 
 # Option processing; see getopt-parse.bash
@@ -654,7 +688,11 @@ while : ; do
   case "$1" in
     -d|--debug)
       # When debugging import only a few representative files
-      export DEBUG=-p\ '([su]1\.s)|(((nami)|(c00)|(ex_addr)|(sys_socket))\.c)|(open\.2)|(((sysexits)|(proc)|(stat)|(telextrn))\.h)'
+      export DEBUG=-p\ '([su]1\.s)|(a1\.s)|(((nami)|(c00)|(ex_addr)|(sys_socket))\.c)|(open\.2)|(((sysexits)|(proc)|(stat)|(telextrn))\.h)'
+      shift
+      ;;
+    -g|--git-fast-import-dump)
+      GFI_DUMP=true
       shift
       ;;
     -I|--no-import)

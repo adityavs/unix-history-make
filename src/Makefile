@@ -1,14 +1,16 @@
 # Downloaded and expanded data
-DATA=archive/pdp7-unix \
-	archive/v1 archive/v3 archive/v4 archive/v5 archive/v6 archive/v7 \
+MOUNTS= archive/CSRG/cd1.mnt archive/CSRG/cd2.mnt \
+	archive/CSRG/cd3.mnt archive/CSRG/cd4.mnt \
+	archive/FreeBSD-1.0.mnt archive/FreeBSD-1.1.mnt \
+	archive/FreeBSD-1.1.5.1.mnt
+
+DATA=archive/pdp7-unix archive/v1 archive/v2 archive/v3 archive/v4 \
+	archive/v5 archive/v6 archive/v7 archive/v8 archive/v9 archive/v10 \
 	archive/1bsd archive/2bsd archive/32v archive/3bsd \
-	archive/CSRG/cd1.mnt archive/CSRG/cd2.mnt \
-	archive/CSRG/cd3.mnt archive/CSRG/cd4.mnt archive/CSRG/cd4.patched \
-	archive/386BSD-0.1 archive/386BSD-0.0 archive/FreeBSD-1.0.mnt \
-	archive/FreeBSD-1.1.mnt archive/FreeBSD-1.1.5.1.mnt \
+	archive/CSRG/cd4.patched archive/386BSD-0.1 archive/386BSD-0.0 \
 	archive/freebsd.git archive/freebsd-doc.git \
 	archive/freebsd-early.git archive/FreeBSD-1.1.5 \
-	archive/386BSD-0.1-patched
+	archive/386BSD-0.1-patched $(MOUNTS)
 
 # Author detail files
 AU=$(wildcard *.au)
@@ -31,17 +33,21 @@ push: import empty
 clear-mounts:
 	rm -f archive/*.mnt archive/CSRG/*.mnt
 
+mount: $(MOUNTS)
+
 unmount:
-	df | awk '/loop/{print $1}' | xargs -n 1 sudo umount
+	df | awk '/loop/{print $1}' | xargs -r -n 1 sudo umount
 
 .SUFFIXES:.iso .mnt
 
 # Mount an ISO filesystem (Linux-specific; tailor it for other systems)
 .iso.mnt:
+	# Ensure we do not run make mount with sudo
+	test `id -u` != 0
 	mkdir -p $(subst .iso,,$<)
 	# Mount uses -o uid, because some directories have 750 permissions, e.g.
 	# drwxr-x--- 2 root news  4096 Mar  9  1989 netns
-	sudo mount -o loop -o uid=`id -u` $< $(subst .iso,,$<)
+	sudo mount -o loop -o uid=`id -u` -o gid=`id -g` $< $(subst .iso,,$<)
 	touch $@
 
 archive/pdp7-unix:
@@ -51,7 +57,7 @@ archive/pdp7-unix:
 
 archive/v1:
 	mkdir -p archive
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Dennis_v1/svntree-20081216.tar.gz | tar -C archive -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Dennis_v1/svntree-20081216.tar.gz | tar -C archive -xzf -
 	mv archive/unix72 $@
 	# Convert OCR to source code files
 	(cd $@ && tools/rebuild >/dev/null)
@@ -62,34 +68,55 @@ archive/v1:
 	rm $@/sys/Makefile
 	# Date based on the 6/20/72 mark on p. 2 of
 	#http://bitsavers.informatik.uni-stuttgart.de/pdf/bellLabs/unix/PreliminaryUnixImplementationDocument_Jun72.pdf
-	touch -d '1972-06-20 12:00' $@/sys/*
+	touch -d '1971-11-03 12:00' $@/sys/*
 
-# The only thing remaining from V2 are formatted manual pages
+# The things remaining from V2 are formatted manual pages and a few fragments
+archive/v2: newoldar arcv
+	# Commands
+	mkdir -p $@/cmd
+	cd $@/cmd && \
+		curl http://www.tuhs.org/Archive//Distributions/Research/1972_stuff/s1-fragments.tar.gz | \
+		tar xzf - && \
+		../../../tools/remake-v2.sh
+	# C compiler
+	mkdir -p $@/c
+	curl http://minnie.tuhs.org/Archive/Applications/Early_C_Compilers/last1120c.tar.gz | tar --strip-components=1 -C $@/c -xzf -
+	find $@/c -name \*.o | xargs rm
+	rm $@/c/nc1/c1 $@/c/cvopt $@/c/nc $@/c/nc0/c0
+	# C library
+	mkdir -p $@/lib
+	# Convert and unpack $@/c/rt/libc.sa
+	( cd $@/lib && ../../../arcv ../c/rt/libc.sa && ../../../newoldar xo ../c/rt/libc.sa )
+	rm -rf $@/c/rt
 
 archive/v3:
-	mkdir -p $@/sys
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Dennis_v3/nsys.tar.gz | tar -C $@/sys -xzf -
+	mkdir -p $@/man
+	curl -s http://minnie.tuhs.org/Archive/Distributions/research/Dennis_v3/v3man.tar.gz | tar -C $@/man -xzf -
+	mkdir -p $@/c
+	curl -s http://minnie.tuhs.org/Archive/Applications/Early_C_Compilers/prestructc.tar.gz | tar --strip-components=1 -C $@/c -xzf -
 
 archive/v4:
 	mkdir -p $@/man
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Dennis_v4/v4man.tar.gz | tar -C $@/man -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Dennis_v4/v4man.tar.gz | tar -C $@/man -xzf -
+	mkdir -p $@/sys
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Dennis_v3/nsys.tar.gz | tar -C $@/sys -xzf -
 
 archive/v5:
 	mkdir -p $@
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Dennis_v5/v5root.tar.gz | tar -C $@ -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Dennis_v5/v5root.tar.gz | tar -C $@ -xzf -
 
 archive/v6:
 	mkdir -p $@
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Dennis_v6/v6root.tar.gz | tar -C $@ -xzf -
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Dennis_v6/v6src.tar.gz | tar -C archive/v6/usr/source -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Dennis_v6/v6root.tar.gz | tar -C $@ -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Dennis_v6/v6src.tar.gz | tar -C archive/v6/usr/source -xzf -
 	mkdir -p $@/usr/doc
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Dennis_v6/v6doc.tar.gz | tar -C $@/usr/doc -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Dennis_v6/v6doc.tar.gz | tar -C $@/usr/doc -xzf -
 
 archive/v7:
 	mkdir -p $@
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Henry_Spencer_v7/v7.tar.gz | tar -C $@ -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Henry_Spencer_v7/v7.tar.gz | tar -C $@ -xzf -
 	mkdir v7-patch
-	curl -s http://www.tuhs.org/Archive/PDP-11/Distributions/research/Henry_Spencer_v7/v7.patches.tar.gz | tar -C v7-patch -xzf -
+	curl -s http://www.tuhs.org/Archive/Distributions/research/Henry_Spencer_v7/v7.patches.tar.gz | tar -C v7-patch -xzf -
 	mv v7-patch/lpr $@/usr/src/cmd/
 	mv v7-patch/lp.c $@/usr/sys/dev/
 	mv v7-patch/lpd.8 $@/usr/man/man8/
@@ -97,22 +124,36 @@ archive/v7:
 	# Remove file epoch timestamp (it just printed the block size)
 	rm $@/bs.c
 
+archive/v8:
+	mkdir -p $@
+	curl -s http://www.tuhs.org/Archive/Distributions/Research/Dan_Cross_v8/v8.tar.bz2 | bzip2 -dc | tar -C $@ -xf -
+
+archive/v9:
+	mkdir -p $@
+	curl -s http://www.tuhs.org/Archive/Distributions/Research/Norman_v9/batterpudding.tar.gz | tar -C $@ -xzf -
+
+archive/v10:
+	mkdir -p $@
+	curl -s http://www.tuhs.org/Archive/Distributions/Research/Dan_Cross_v10/v10src.tar.bz2 | bzip2 -dc | tar -C $@ -xf -
+
 archive/1bsd: newoldar
 	mkdir -p $@
-	curl -s http://unixarchive.cn-k.de/PDP-11/Distributions/ucb/1bsd.tar.gz | tar -C $@ -xzf -
+	curl -s http://www.tuhs.org/Archive//Distributions/UCB/1bsd.tar.gz | tar -C $@ -xzf -
 	( AR=`pwd`/newoldar ; cd $@ && find . -name cont.a  | awk -F/ '{print $$2}' | while read d ; do ( cd $$d && $$AR xo cont.a && rm cont.a ) ; done)
 	rm -f $@/TAPE
 
 newoladar: newoldar.c
 
+arcv: arcv.c ar.h
+
 archive/2bsd:
 	mkdir -p $@
-	curl -s http://unixarchive.cn-k.de/PDP-11/Distributions/ucb/2bsd.tar.gz | tar -C $@ -xzf -
+	curl -s http://www.tuhs.org/Archive//Distributions/UCB/2bsd.tar.gz | tar -C $@ -xzf -
 	rm -f $@/TAPE
 
 archive/32v:
 	mkdir -p $@
-	curl -s http://www.tuhs.org/Archive/VAX/Distributions/32V/32v_usr.tar.gz | tar -C $@ -xzf -
+	curl -s http://www.tuhs.org/Archive//Distributions/USDL/32V/32v_usr.tar.gz | tar -C $@ -xzf -
 
 archive/3bsd:
 	mkdir -p $@

@@ -32,7 +32,6 @@ man/man1/opr.1
 man/man1/passwd.1
 man/man1/pfe.1
 man/man1/plot.1
-man/man1/proof.1
 man/man1/ps.1
 man/man1/shift.1
 man/man1/size.1
@@ -43,7 +42,6 @@ man/man1/split.1
 man/man1/sum.1
 man/man1/time.1
 man/man1/tp.1
-man/man1/tr.1
 man/man1/typo.1
 man/man1/uniq.1
 man/man1/wait.1
@@ -128,3 +126,19 @@ man/manx/un.1
 man/manx/unspk.8
 man/manx/vs.1
 man/nroff-all
+sys/buf.h
+sys/conf.h
+sys/file.h
+sys/filsys.h
+sys/inode.h
+sys/junk/nps.s
+sys/junk/prot.s
+sys/junk/ustr.s
+sys/param.h
+sys/proc.h
+sys/reg.h
+sys/systm.h
+sys/tables.c
+sys/text.h
+sys/tty.h
+sys/user.h

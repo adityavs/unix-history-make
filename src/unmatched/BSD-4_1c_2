@@ -3,6 +3,7 @@
 .login
 .profile
 .rhosts
+LABEL
 a/sys/GENERIC/acc.h
 a/sys/GENERIC/ad.h
 a/sys/GENERIC/assym.s
@@ -3955,6 +3956,7 @@ usr/src/usr.lib/lpr/vsort.c
 usr/src/usr.lib/lpr/vwidth.c
 usr/src/usr.lib/makewhatis.sh
 usr/src/usr.lib/undoc/libpriv/Makefile
+usr/src/usr.lib/undoc/libpriv/privzero.o
 usr/src/usr.lib/undoc/libpriv/quota.c
 usr/src/usr.lib/undoc/libpriv/setquota.c
 usr/src/usr.lib/vpr/READ_ME

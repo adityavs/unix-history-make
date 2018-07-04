@@ -1,3 +1,5 @@
+ALU-USA-statement.pdf
+Caldera-license.pdf
 dev/MAKEDEV
 ".ref-BSD-3/\"usr/src/cmd/adb/old\\031sym.c\""
 tmp/autoconf.c
@@ -4140,7 +4142,6 @@ usr/src/local/ditroff/ditroff.old.okeeffe/driver/dvar.c
 usr/src/local/ditroff/ditroff.old.okeeffe/driver/dver.c
 usr/src/local/ditroff/ditroff.old.okeeffe/driver/graph.c
 usr/src/local/ditroff/ditroff.old.okeeffe/driver/ifontinfo.c
-usr/src/local/ditroff/ditroff.old.okeeffe/driver/ifontinfo.c-bad
 usr/src/local/ditroff/ditroff.old.okeeffe/driver/makeifont.c
 usr/src/local/ditroff/ditroff.old.okeeffe/driver/makevfont.c
 usr/src/local/ditroff/ditroff.old.okeeffe/driver/qms2ch.c

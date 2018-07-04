@@ -2,7 +2,7 @@
 The history and evolution of the Unix operating system is made available
 as a revision management repository, covering the period from its
 inception in 1970 as a 2.5 thousand line kernel and 26 commands,
-to 2016 as a widely-used 27 million line system. The 1.1GB repository
+to 2017 as a widely-used 27 million line system. The 1.1GB repository
 contains about half a million commits and more than two thousand merges.
 The repository employs Git system for its storage and is hosted on GitHub.
 It has been created by synthesizing with custom software 24 snapshots of
@@ -14,17 +14,8 @@ the early ones through primary research.
 The data set can be used for empirical research in software engineering,
 information systems, and software archaeology.
 
-The project aims to put in the repository as much metadata as possible,
-allowing the automated analysis of Unix history.
-The following table illustrates the type of material that can be gathered
-and integrated into the repository.
-
-             |Snapshot | Repository | Primary Research
--------------|---------|------------|-----------------
-Source Code  |    X    |      X     |
-Time         |    X    |      X     |
-Contributors |         |      X     |       X
-Branches     |         |      X     |       X
+You can read more details about the contents, creation, and uses of this
+repository through [this link](http://www.dmst.aueb.gr/dds/pubs/jrnl/2016-EMPSE-unix-history/html/unix-history.html).
 
 Two repositories are associated with the project:
 * [unix-history-repo](https://github.com/dspinellis/unix-history-repo) is
@@ -37,12 +28,10 @@ Two repositories are associated with the project:
   a repository containing code and metadata used to build the above repository.
   Contributions to this repository are welcomed.
 
-The first phase of the project involved creating a single timeline from the First Edition of Unix until the present.
-
 ## Project status
-The project has achieved its first major goal with the establishment of a continuous timeline from 1972 until today. The repository contains:
+The project has achieved its major goal with the establishment of a continuous timeline from 1970 until today. The repository contains:
 
-* snapshots of PDP-7, V1, V3, V4, V5, V6, and V7 Research Edition,
+* snapshots of PDP-7, V1, V2, V3, V4, V5, V6, and V7 Research Edition,
 * Unix/32V,
 * all available BSD releases,
 * the CSRG SCCS history,
@@ -52,7 +41,7 @@ The project has achieved its first major goal with the establishment of a contin
 * an import of the FreeBSD repository starting from its initial imports that led to FreeBSD 2.0, and
 * the current FreeBSD repository.
 
-The files appear to be added in the repository in chronological order according to their modification time, and large parts of the source code have been attributed to their actual authors.  Commands like `git blame` and (sometimes) `git log` produce the expected results.
+The files appear to be added in the repository in chronological order according to their modification time, and large parts of the source code have been attributed to their actual authors.  Commands like `git blame` and `git log` produce the expected results.
 
 The repository contains a number of two-way merges.
 
@@ -68,6 +57,7 @@ The following tags or branch names mark specific releases, listed in rough chron
 * Epoch
 * Research-PDP7
 * Research-V1
+* Research-V2
 * Research-V3
 * Research-V4
 * Research-V5
@@ -298,6 +288,7 @@ $ARCHIVE/32v Bell 32V -0500 | gfi
 [HTML](http://www.dmst.aueb.gr/dds/pubs/jrnl/2016-EMPSE-unix-history/html/unix-history.html), [PDF](http://www.dmst.aueb.gr/dds/pubs/jrnl/2016-EMPSE-unix-history/html/unix-history.pdf)
 - Diomidis Spinellis. A repository with 44 years of Unix evolution. In *MSR '15: Proceedings of the 12th Working Conference on Mining Software Repositories*, pages 13-16. IEEE, 2015. Best Data Showcase Award. [PDF](http://www.dmst.aueb.gr/dds/pubs/conf/2015-MSR-Unix-History/html/Spi15c.pdf), [HTML](http://www.dmst.aueb.gr/dds/pubs/conf/2015-MSR-Unix-History/html/Spi15c.html), [poster](http://www.dmst.aueb.gr/dds/pubs/conf/2015-MSR-Unix-History/html/poster.pdf).
 - Warren Toomey, First Edition Unix: Its Creation and Restoration, in *IEEE Annals of the History of Computing*, vol. 32, no. 3, pp. 74-82, July-Sept. 2010. doi:10.1109/MAHC.2009.55. [PDF](http://www.tuhs.org/Archive/Documentation/Papers/1eUnix_creation_restoration.pdf)
+- Warren Toomey,  The Restoration of Early UNIX Artifacts, in *USENIX ATC '09: 2009 USENIX Annual Technical Conference*. 2009. [PDF](https://www.usenix.org/legacy/events/usenix09/tech/full_papers/toomey/toomey.pdf)
 - Diomidis Spinellis, Panagiotis Louridas, and Maria Kechagia. An exploratory study on the evolution of C programming in the Unix operating system. In Qing Wang and Guenther Ruhe, editors, *ESEM '15: 9th International Symposium on Empirical Software Engineering and Measurement*, pages 54–57. IEEE, October 2015. [HTML](http://www.dmst.aueb.gr/dds/pubs/conf/2015-ESEM-CodeStyle/html/SLK15.html), [PDF](http://www.dmst.aueb.gr/dds/pubs/conf/2015-ESEM-CodeStyle/html/SLK15.pdf)
 - Diomidis Spinellis, Panos Louridas, and Maria Kechagia. The evolution of C programming practices: A study of the Unix operating system 1973–2015. In Willem Visser and Laurie Williams, editors, *ICSE '16: Proceedings of the 38th International Conference on Software Engineering*, May 2016. Association for Computing Machinery. doi:10.1145/2884781.2884799. [PDF](http://www.dmst.aueb.gr/dds/pubs/conf/2016-ICSE-ProgEvol/html/SLK16.pdf), [HTML](http://www.dmst.aueb.gr/dds/pubs/conf/2016-ICSE-ProgEvol/html/SLK16.html)
 - Wikipedia: The Free Encyclopedia
@@ -307,15 +298,14 @@ $ARCHIVE/32v Bell 32V -0500 | gfi
     - [Berkeley Software Distribution](http://en.wikipedia.org/wiki/BSD_Unix)
 - TUHS: The Unix Heritage Society
     - [The Unix Tree](http://minnie.tuhs.org/cgi-bin/utree.pl)
-- USENIX: The Advanced Computing Systems Association
-    - [The Restoration of Early UNIX Artifacts](https://www.usenix.org/legacy/events/usenix09/tech/full_papers/toomey/toomey.pdf) (pdf)
 - Historical documents and data
     - [PDP-7 Unix restoration project](https://github.com/DoctorWkt/pdp7-unix)
     - [First Edition Unix printout - 1972](http://bitsavers.trailing-edge.com/pdf/bellLabs/unix/PreliminaryUnixImplementationDocument_Jun72.pdf)
     - [Unix 32/V Report - 1978](http://cm.bell-labs.com/cm/cs/who/dmr/otherports/32vscan.pdf)
     - [Berkeley CSRG Archive CD-ROMs](https://www.mckusick.com/csrg/index.html)
 - Studies
-    - [Unix at the Bell Labs - People](http://www.princeton.edu/~hos/Mahoney/unixpeople.htm)
+    - [M. Douglas McIlroy. A Research UNIX Reader: Annotated Excerpts from the Programmer's Manual, 1971-1986](https://archive.org/details/a_research_unix_reader)
+    - [Michael S. Mahoney. Unix at the Bell Labs - People](http://www.princeton.edu/~hos/Mahoney/unixpeople.htm)
 
 ## Acknowledgements
 * The following people helped with Bell Labs login identifiers.

@@ -21,24 +21,33 @@ took a scanned June 1972 280-page printout of 1st Edition UNIX source
 code and documentation, and restored it to an incomplete but running
 system.
 
-## Research-V2 (missing?)
+## Research-V2
 The 2nd Edition (June 12, 1972) source code has only survived in the
 form of fragments. These were manually restored by Warren Toomey,
 who pieced together data from a subset of a disk dump’s DECtapes,
 that were extracted by Dennis Ritchie. The fragments comprise
-the source code for some of the system’s utilities. In addition,
-this edition’s manual survives as a printed document.
+the source code for some of the system’s utilities. The file metadata
+appears to have been lost. Consequently the file names are guesses,
+and the timestamps are based on those of the corresponding binary
+files.  This edition’s manual survives as a printed document.
+In addition to the surviving fragments the repository contains the
+last C compiler used on the PDP-11/20 and the corresponding C library.
 
 ## Research-V3
 The 3rd Edition (February 1973) contains
-only the Unix kernel: 7609 lines of which just 768 are written in
-PDP-11 assembly and the rest are written in C. This was the first
-Unix version to support pipes.
+part of the C compiler (just before it started using structures in
+its own source code) and the manual pages.
 
 ## Research-V4
 The 4th Edition (November 1973) contains
-only source markup for the manual pages: 18975 lines of
-*troff* code.
+the Unix kernel and the source markup of the manual pages.
+The kernel predates the actual edition by a few months.
+It consists of 7609 lines of which just 768 are written in
+PDP-11 assembly and the rest are written in C.
+This was the first Unix version to support pipes.
+However, the C kernel found here had not yet included the pipe
+support from the assembly language kernel.
+The manual pages comprise 18975 lines of *troff* code.
 
 ## Research-V5
 The 5th Edition (June 1974) is missing
